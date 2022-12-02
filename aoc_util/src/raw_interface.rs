@@ -17,8 +17,7 @@ pub fn download_input(year: u16, day: u8) -> Result<String, Error> {
     if !response.status().is_success() {
         return Err(Error::InvalidSessionCookie(session_cookie.source));
     }
-    // println!("response status {}", response.status());
-    // println!("{}", response.text()?);
+
     Ok(response.text()?)
 }
 
@@ -61,15 +60,32 @@ impl Iterator for FolderWalker {
         match self.current_path {
             Some(ref mut path) => {
                 let ret = path.clone();
-                match path.parent() {
-                    Some(_) => {
-                        path.pop();
-                    }
-                    None => self.current_path = None,
+                if !path.pop() {
+                    self.current_path = None;
                 }
                 Some(ret)
             }
             None => None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn folder_walker_test() {
+        let mut walker = FolderWalker {
+            current_path: Some("/a/b/c/d/e".into()),
+        };
+        assert_eq!(walker.next(), Some("/a/b/c/d/e".into()));
+        assert_eq!(walker.next(), Some("/a/b/c/d".into()));
+        assert_eq!(walker.next(), Some("/a/b/c".into()));
+        assert_eq!(walker.next(), Some("/a/b".into()));
+        assert_eq!(walker.next(), Some("/a".into()));
+        assert_eq!(walker.next(), Some("/".into()));
+        assert_eq!(walker.next(), None);
+        assert_eq!(walker.next(), None);
     }
 }

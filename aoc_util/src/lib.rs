@@ -49,6 +49,3 @@ pub enum Error {
     #[error("IO error `{0}`")]
     IOError(#[from] std::io::Error),
 }
-
-#[cfg(test)]
-mod tests {}
